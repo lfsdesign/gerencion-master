@@ -414,27 +414,68 @@ function carregarVendedoresLocal(){
 }
 function salvarVendedoresLocal(){localStorage.setItem(VEND_KEY,JSON.stringify(todosVendedores));}
 
-function carregarPagamentosLocal(){
-  const p=localStorage.getItem(PAG_KEY);
-  return p?JSON.parse(p):[];
+async function carregarPagamentosDB(){
+  try{
+    const r=await sb('ge_pagamentos?select=*&order=criado_em.desc');
+    todosPagamentos=r.map(p=>({
+      id:p.id,clienteId:p.cliente_id,mes:p.mes,valor:p.valor,
+      comissao:p.comissao,vendedorId:p.vendedor_id,data:p.data,
+      forma:p.forma||'pix',obs:p.obs
+    }));
+  }catch(e){
+    // Fallback localStorage se tabela não existir ainda
+    const p=localStorage.getItem(PAG_KEY);
+    todosPagamentos=p?JSON.parse(p):[];
+  }
 }
+async function salvarPagamentoDB(pag){
+  try{
+    await sb('ge_pagamentos',{method:'POST',body:JSON.stringify({
+      cliente_id:pag.clienteId,mes:pag.mes,valor:pag.valor,
+      comissao:pag.comissao,vendedor_id:pag.vendedorId,
+      data:pag.data,forma:pag.forma,obs:pag.obs||null
+    })});
+  }catch(e){
+    // Fallback localStorage
+    localStorage.setItem(PAG_KEY,JSON.stringify(todosPagamentos));
+  }
+}
+async function carregarComissoesDB(){
+  try{
+    return await sb('ge_comissoes_pagas?select=*');
+  }catch(e){
+    const c=localStorage.getItem(COM_KEY);
+    return c?JSON.parse(c):[];
+  }
+}
+async function salvarComissaoDB(item){
+  try{
+    await sb('ge_comissoes_pagas',{method:'POST',body:JSON.stringify({
+      vendedor_id:item.vendedorId,mes:item.mes,
+      valor:item.valor,data:item.data,obs:item.obs||null
+    })});
+  }catch(e){
+    const lista=JSON.parse(localStorage.getItem(COM_KEY)||'[]');
+    lista.push(item);
+    localStorage.setItem(COM_KEY,JSON.stringify(lista));
+  }
+}
+// Compatibilidade - manter funções síncronas como fallback
+function carregarPagamentosLocal(){const p=localStorage.getItem(PAG_KEY);return p?JSON.parse(p):[];}
 function salvarPagamentosLocal(){localStorage.setItem(PAG_KEY,JSON.stringify(todosPagamentos));}
-
-function carregarComissoesLocal(){
-  const c=localStorage.getItem(COM_KEY);
-  return c?JSON.parse(c):[];
-}
+function carregarComissoesLocal(){const c=localStorage.getItem(COM_KEY);return c?JSON.parse(c):[];}
 function salvarComissoesLocal(lista){localStorage.setItem(COM_KEY,JSON.stringify(lista));}
 
 function maskWpp(el){let v=el.value.replace(/\D/g,'');if(v.length>11)v=v.slice(0,11);if(v.length>10)v='('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);else if(v.length>6)v='('+v.slice(0,2)+') '+v.slice(2,6)+'-'+v.slice(6);else if(v.length>2)v='('+v.slice(0,2)+') '+v.slice(2);el.value=v;}
 
 // LOGIN
-function loginMaster(){
+async function loginMaster(){
   if($('masterPin').value!==MASTER_PIN)return toast('Senha incorreta','err');
   $('telaLogin').style.display='none';
   $('telaApp').style.display='block';
   todosVendedores=carregarVendedoresLocal();
   todosPagamentos=carregarPagamentosLocal();
+  await carregarPagamentosDB();
   carregarClientes();
 }
 function sairMaster(){$('telaApp').style.display='none';$('telaLogin').style.display='flex';$('masterPin').value='';}
@@ -575,7 +616,7 @@ function abrirPagamento(clienteId,plano,valor){
   $('ovPagamento').classList.add('on');
 }
 
-function confirmarPagamento(){
+async function confirmarPagamento(){
   const clienteId=$('pagClienteId').value;
   const valor=parseFloat($('pagValor').value)||0;
   const data=$('pagData').value;
@@ -588,8 +629,10 @@ function confirmarPagamento(){
   const mes=data.slice(0,7);
   const comissao=valor*(vend.comissao||0)/100;
   todosPagamentos=todosPagamentos.filter(p=>!(p.clienteId===clienteId&&p.mes===mes));
-  todosPagamentos.push({id:'p'+Date.now(),clienteId,mes,valor,comissao,vendedorId:vendId,data,forma,obs,pago:false});
+  const novoPag={id:'p'+Date.now(),clienteId,mes,valor,comissao,vendedorId:vendId,data,forma,obs};
+  todosPagamentos.push(novoPag);
   salvarPagamentosLocal();
+  await salvarPagamentoDB(novoPag);
   toast('✅ Pagamento de '+fmt(valor)+' registrado!');
   fecharModal('ovPagamento');
   renderClientes();
@@ -692,7 +735,7 @@ function abrirComissao(vendId,mes,valor){
   $('ovComissao').classList.add('on');
 }
 
-function confirmarComissao(){
+async function confirmarComissao(){
   const vendId=$('mcmVendId').value;
   const mes=$('mcmMes').value;
   const valor=parseFloat($('mcmValor').value)||0;
@@ -704,6 +747,7 @@ function confirmarComissao(){
   const item={vendedorId:vendId,mes,valor,data,obs};
   if(idx>=0)lista[idx]=item;else lista.push(item);
   salvarComissoesLocal(lista);
+  await salvarComissaoDB(item);
   toast('✅ Comissão marcada como paga!');
   fecharModal('ovComissao');
   renderFinanceiro();
@@ -826,7 +870,15 @@ function excluirCliente(){
   fecharModal('ovCliente');
 }
 async function confirmarExcluir(id){
-  try{await sb('ge_restaurantes?id=eq.'+id,{method:'DELETE'});cancelarToast();toast('🗑️ Cliente excluído!','warn');await carregarClientes();}catch(e){toast('Erro ao excluir','err');}
+  try{
+    await fetch(SB_URL+'/rest/v1/ge_restaurantes?id=eq.'+id,{
+      method:'DELETE',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'}
+    });
+    cancelarToast();
+    toast('🗑️ Cliente excluído!','warn');
+    await carregarClientes();
+  }catch(e){toast('Erro ao excluir: '+e.message,'err');}
 }
 function cancelarToast(){$('toast').className='';$('toast').innerHTML='';}
 
