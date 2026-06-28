@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GE Master</title>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="ge-master-manifest.json">
 <meta name="theme-color" content="#8B5CF6">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -183,7 +183,7 @@ select.inp{appearance:auto;}
 <script>
 const SB_URL='https://vzsvdtlmxxbsqhpitfin.supabase.co';
 const SB_KEY='sb_publishable_rhwR4_UkK33FF3XX1c-oeA_lMKMCANN';
-const MASTER_PIN='Lfs#111012Lfs#';// ← TROQUE ESTA SENHA!
+const MASTER_PIN='GE2024MASTER';// ← TROQUE ESTA SENHA!
 
 const sb=(path,opts={})=>fetch(`${SB_URL}/rest/v1/${path}`,{
   headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})},
@@ -264,7 +264,7 @@ function renderClientes(){
   if(!lista.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--t3);">Nenhum cliente encontrado</div>';return;}
 
   el.innerHTML=lista.map(c=>{
-    const ativo=c.ativo!==false;
+    const ativo=c.ativo!==false;const fundador=c.observacao&&c.observacao.toLowerCase().includes('fundador');
     const plano=c.plano||'basico';
     const planoLabel={'basico':'📦 Básico','profissional':'⭐ Profissional','empresarial':'🏆 Empresarial'}[plano]||plano;
     const planoPreco={'basico':'R$ 97/mês','profissional':'R$ 147/mês','empresarial':'R$ 247/mês'}[plano]||'';
@@ -290,6 +290,7 @@ function renderClientes(){
           <div class="cli-badges">
             <span class="badge ${ativo?'b-ativo':'b-inativo'}">${ativo?'✅ Ativo':'⛔ Inativo'}</span>
             <span class="badge b-plano">${planoLabel}</span>
+            ${fundador?'<span class="badge" style="background:rgba(255,215,0,0.15);color:#FFD700;border:1px solid rgba(255,215,0,0.4);">⭐ Cliente Fundador</span>':''}
             ${valBadge}
           </div>
         </div>
