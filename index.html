@@ -162,6 +162,14 @@ select.inp{appearance:auto;}
         <div class="stat"><div class="stat-n" style="color:var(--rd)" id="stInativos">0</div><div class="stat-l">Inativos</div></div>
         <div class="stat"><div class="stat-n" style="color:var(--am)" id="stVencendo">0</div><div class="stat-l">Vencendo</div></div>
       </div>
+      <!-- BOTÃO GERAR LINK -->
+      <div style="background:linear-gradient(135deg,var(--gn2),rgba(11,17,32,0.9));border:1.5px solid var(--gn3);border-radius:14px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:var(--gn);">🔗 Gerar Link para Novo Cliente</div>
+          <div style="font-size:11px;color:var(--t2);margin-top:3px;">Gere um link único e envie para o cliente criar a conta</div>
+        </div>
+        <button onclick="gerarLinkNovoCliente()" style="padding:10px 16px;background:var(--gn);border:none;border-radius:11px;color:#0B1120;font-size:12px;font-weight:800;cursor:pointer;font-family:Inter,sans-serif;white-space:nowrap;touch-action:manipulation;">+ Gerar Link</button>
+      </div>
       <input class="sinp" id="busca" placeholder="🔍 Buscar por nome ou tipo..." oninput="renderClientes()">
       <div class="filtros">
         <button class="fbtn on" onclick="setFiltro('todos',this)">Todos</button>
@@ -322,6 +330,35 @@ select.inp{appearance:auto;}
   </div>
 </div>
 
+<!-- MODAL LINK NOVO CLIENTE -->
+<div class="overlay" id="ovNovoLink">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="mh"></div>
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:32px;margin-bottom:8px;">🔗</div>
+      <div style="font-size:15px;font-weight:800;color:var(--t);">Link Gerado!</div>
+      <div style="font-size:12px;color:var(--t2);margin-top:4px;line-height:1.6;">Envie este link para o cliente. Ao abrir, ele já cai direto na tela de criação do sistema.</div>
+    </div>
+    <div style="background:var(--s2);border:1.5px solid var(--gn3);border-radius:13px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gn);margin-bottom:8px;">🔗 Link de Acesso</div>
+      <div id="novoLinkUrl" style="font-size:12px;color:var(--bl);word-break:break-all;font-weight:600;line-height:1.6;margin-bottom:10px;"></div>
+      <button onclick="copiarNovoLink()" style="width:100%;padding:11px;background:var(--pu2);border:1px solid var(--pu3);border-radius:10px;color:var(--pu);font-size:12px;font-weight:800;cursor:pointer;font-family:Inter,sans-serif;touch-action:manipulation;">📋 Copiar Link</button>
+    </div>
+    <div style="background:var(--s2);border:1px solid var(--b);border-radius:13px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--am);margin-bottom:8px;">📲 Enviar pelo WhatsApp</div>
+      <div style="font-size:11px;color:var(--t2);margin-bottom:10px;line-height:1.6;">Digite o número do cliente para abrir o WhatsApp com a mensagem pronta:</div>
+      <div style="display:flex;gap:8px;">
+        <input class="inp" id="novoLinkWpp" placeholder="(DDD) Número do cliente" inputmode="tel" maxlength="15" oninput="maskWpp(this)" style="margin-bottom:0;flex:1;">
+        <button onclick="enviarLinkWpp()" style="padding:11px 14px;background:var(--gn);border:none;border-radius:10px;color:#0B1120;font-size:12px;font-weight:800;cursor:pointer;font-family:Inter,sans-serif;touch-action:manipulation;white-space:nowrap;">📲 Enviar</button>
+      </div>
+    </div>
+    <div style="background:var(--am2);border:1px solid var(--am3);border-radius:11px;padding:11px 13px;margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--am);line-height:1.7;">⚠️ <strong>Importante:</strong> Após o cliente criar a conta, ele aparece aqui na lista. Então você edita o plano e define a validade conforme o pagamento recebido.</div>
+    </div>
+    <button onclick="fecharModal('ovNovoLink')" style="width:100%;padding:13px;background:var(--s2);border:1px solid var(--b);border-radius:12px;color:var(--t2);font-weight:700;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;touch-action:manipulation;">Fechar</button>
+  </div>
+</div>
+
 <!-- AJUDA -->
 <div class="help-ov" id="ovAjuda">
   <div class="help-m" onclick="event.stopPropagation()">
@@ -333,9 +370,17 @@ select.inp{appearance:auto;}
       <div class="help-ns">Lista todos os estabelecimentos cadastrados. Você vê status, plano, validade e o vendedor que indicou. Use os filtros para encontrar rapidamente.</div>
     </div></div>
 
-    <div class="help-it"><div class="help-ic">➕</div><div>
-      <div class="help-nt">Como ativar um novo cliente</div>
-      <div class="help-ns"><strong style="color:var(--am);">1.</strong> Cliente paga e cria a conta no app<br><strong style="color:var(--am);">2.</strong> Ele aparece aqui automaticamente<br><strong style="color:var(--am);">3.</strong> Clique em <strong>✏️ Editar</strong> → defina Status Ativo, Plano, Validade e Vendedor<br><strong style="color:var(--am);">4.</strong> Salve — acesso liberado!</div>
+    <div class="help-it"><div class="help-ic">🔗</div><div>
+      <div class="help-nt">Como gerar link para novo cliente — PASSO A PASSO</div>
+      <div class="help-ns">
+        <strong style="color:var(--am);">1.</strong> Cliente entra em contato e paga o plano<br>
+        <strong style="color:var(--am);">2.</strong> Você clica em <strong>+ Gerar Link</strong> no topo da lista<br>
+        <strong style="color:var(--am);">3.</strong> Um link único é gerado — copie ou envie direto pelo WhatsApp<br>
+        <strong style="color:var(--am);">4.</strong> Cliente abre o link, escolhe o plano, aceita os termos e cria o sistema<br>
+        <strong style="color:var(--am);">5.</strong> Ele aparece automaticamente aqui na lista<br>
+        <strong style="color:var(--am);">6.</strong> Você clica em <strong>✏️ Editar</strong> → define Plano, Validade e Vendedor<br>
+        <strong style="color:var(--am);">7.</strong> Salva — acesso liberado! ✅
+      </div>
     </div></div>
 
     <div class="help-it"><div class="help-ic">📋</div><div>
@@ -880,6 +925,41 @@ async function confirmarExcluir(id){
   }catch(e){toast('Erro ao excluir: '+e.message,'err');}
 }
 function cancelarToast(){$('toast').className='';$('toast').innerHTML='';}
+
+// GERAR LINK NOVO CLIENTE
+const APP_URL='https://gerencion-estoque.vercel.app';
+let linkGerado='';
+
+function gerarLinkNovoCliente(){
+  // Gerar código único de 6 caracteres
+  const cod=Math.random().toString(36).substring(2,8).toUpperCase();
+  linkGerado=APP_URL+'?novo='+cod;
+  $('novoLinkUrl').textContent=linkGerado;
+  $('novoLinkWpp').value='';
+  $('ovNovoLink').classList.add('on');
+}
+
+function copiarNovoLink(){
+  navigator.clipboard.writeText(linkGerado).then(()=>toast('📋 Link copiado!'));
+}
+
+function enviarLinkWpp(){
+  const num=($('novoLinkWpp').value||'').replace(/\D/g,'');
+  if(!num||num.length<10)return toast('Digite o número do cliente','warn');
+  const msg=encodeURIComponent(
+    '👋 Olá! Seu acesso ao Gerencion Estoque está pronto!\n\n'+
+    '🔗 Clique no link abaixo para criar seu sistema:\n'+
+    linkGerado+'\n\n'+
+    '📱 Ao abrir o link:\n'+
+    '1️⃣ Escolha seu plano\n'+
+    '2️⃣ Aceite os termos\n'+
+    '3️⃣ Configure seu estabelecimento\n\n'+
+    '⚠️ Este link é pessoal e intransferível.\n'+
+    'Qualquer dúvida, me chame aqui! 😊'
+  );
+  window.open('https://wa.me/55'+num+'?text='+msg,'_blank');
+  toast('✅ WhatsApp aberto!');
+}
 
 // MODAIS
 function fecharModal(id){$(id).classList.remove('on');}
