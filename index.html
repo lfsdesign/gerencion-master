@@ -346,7 +346,12 @@ select.inp{appearance:auto;}
     </div>
     <div style="background:var(--s2);border:1px solid var(--b);border-radius:13px;padding:14px;margin-bottom:14px;">
       <div style="font-size:11px;font-weight:700;color:var(--am);margin-bottom:8px;">📲 Enviar pelo WhatsApp</div>
-      <div style="font-size:11px;color:var(--t2);margin-bottom:10px;line-height:1.6;">Digite o número do cliente para abrir o WhatsApp com a mensagem pronta:</div>
+      <div style="font-size:11px;color:var(--t2);margin-bottom:10px;line-height:1.6;">Informe o plano contratado e o número do cliente:</div>
+      <select class="inp" id="novoLinkPlano" style="margin-bottom:8px;">
+        <option value="basico">📦 Básico — R$ 97/mês</option>
+        <option value="profissional">⭐ Profissional — R$ 147/mês</option>
+        <option value="empresarial">🏆 Empresarial — R$ 197/mês</option>
+      </select>
       <div style="display:flex;gap:8px;">
         <input class="inp" id="novoLinkWpp" placeholder="(DDD) Número do cliente" inputmode="tel" maxlength="15" oninput="maskWpp(this)" style="margin-bottom:0;flex:1;">
         <button onclick="enviarLinkWpp()" style="padding:11px 14px;background:var(--gn);border:none;border-radius:10px;color:#0B1120;font-size:12px;font-weight:800;cursor:pointer;font-family:Inter,sans-serif;touch-action:manipulation;white-space:nowrap;">📲 Enviar</button>
@@ -946,16 +951,22 @@ function copiarNovoLink(){
 function enviarLinkWpp(){
   const num=($('novoLinkWpp').value||'').replace(/\D/g,'');
   if(!num||num.length<10)return toast('Digite o número do cliente','warn');
+  const planoSel=$('novoLinkPlano')&&$('novoLinkPlano').value||'basico';
+  const planoLabel={'basico':'Basico - R$ 97/mes','profissional':'Profissional - R$ 147/mes','empresarial':'Empresarial - R$ 197/mes'}[planoSel];
   const msg=encodeURIComponent(
-    '👋 Olá! Seu acesso ao Gerencion Estoque está pronto!\n\n'+
-    '🔗 Clique no link abaixo para criar seu sistema:\n'+
+    'Ola! Seu acesso ao Gerencion Estoque esta pronto!\n\n'+
+    'Plano contratado: '+planoLabel+'\n\n'+
+    'IMPORTANTE: Nao clique diretamente no link!\n'+
+    'Siga o passo a passo abaixo:\n\n'+
+    'PASSO 1 - Copie o link abaixo:\n'+
     linkGerado+'\n\n'+
-    '📱 Ao abrir o link:\n'+
-    '1️⃣ Escolha seu plano\n'+
-    '2️⃣ Aceite os termos\n'+
-    '3️⃣ Configure seu estabelecimento\n\n'+
-    '⚠️ Este link é pessoal e intransferível.\n'+
-    'Qualquer dúvida, me chame aqui! 😊'
+    'PASSO 2 - Abra o Google Chrome no seu celular\n\n'+
+    'PASSO 3 - Cole o link na barra de endereco do Chrome e acesse\n\n'+
+    'PASSO 4 - Na tela de planos, clique no seu plano contratado: '+planoLabel+'\n\n'+
+    'PASSO 5 - Aceite os termos, configure seu estabelecimento e pronto!\n\n'+
+    'PASSO 6 - Quando o Chrome oferecer, instale o app na tela inicial do celular\n\n'+
+    'Por que pelo Chrome? Para instalar como app de verdade, com icone bonito e acesso rapido.\n\n'+
+    'Qualquer duvida, me chame aqui!'
   );
   window.open('https://wa.me/55'+num+'?text='+msg,'_blank');
   toast('✅ WhatsApp aberto!');
