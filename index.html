@@ -494,9 +494,12 @@ function renderClientes(){
     const vendId=c.vendedor_id||'v0';
     const vend=todosVendedores.find(v=>v.id===vendId)||todosVendedores[0]||{nome:'Leandro'};
     const pag=getPagamentoMes(c.id,mes);
+    const vitalicio=c.validade_ate==='2099-12-31';
+    const emDia=c.validade_ate&&new Date(c.validade_ate+'T00:00:00')>=hoje;
+    // "Aguardando pagamento" so aparece se: ativo, NAO vitalicio e validade vencida/ausente
     const pagBadge=pag
       ?'<span class="badge" style="background:var(--gn2);color:var(--gn);border:1px solid var(--gn3);">&#128176; Pago '+fmt(pag.valor)+'</span>'
-      :(ativo?'<span class="badge" style="background:var(--rd2);color:var(--rd);border:1px solid var(--rd3);">&#9203; Aguardando pagamento</span>':'');
+      :(ativo&&!vitalicio&&!emDia?'<span class="badge" style="background:var(--rd2);color:var(--rd);border:1px solid var(--rd3);">&#9203; Aguardando pagamento</span>':'');
     let valBadge='';
     if(c.validade_ate){
       const v=new Date(c.validade_ate+'T00:00:00');
