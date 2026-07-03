@@ -743,8 +743,7 @@ function editarCliente(id){
   $('mcMaxFunc').value=clienteAtual.max_funcionarios||3;
   $('mcObs').value=clienteAtual.observacao||'';
   const sel=$('mcVendedor');
-  sel.innerHTML=todosVendedores.map(v=>'<option value="'+v.id+'"+((clienteAtual.vendedor_id||"v0")===v.id?" selected":"")+">'+v.nome+'</option>').join('');
-  // Corrigir selected
+  sel.innerHTML=todosVendedores.map(v=>'<option value="'+v.id+'">'+v.nome+'</option>').join('');
   sel.value=clienteAtual.vendedor_id||'v0';
   $('ovCliente').classList.add('on');
 }
