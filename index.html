@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GE Master</title>
-<link rel="manifest" href="ge-master-manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#8B5CF6">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -524,11 +525,11 @@ function renderClientes(){
         '<div class="cli-inf-item"><div class="cli-inf-l">Codigo acesso</div><div class="cli-inf-v" style="letter-spacing:2px;color:var(--gn);">'+(c.codigo_acesso||'&mdash;')+'</div></div>'+
       '</div>'+
       '<div class="cli-acoes">'+
-        '<button class="acao-btn" onclick="editarCliente(''+c.id+'')" style="background:var(--bl2);color:var(--bl);border:1px solid var(--bl3);">&#9999;&#65039; Editar</button>'+
-        '<button class="acao-btn" onclick="toggleAtivo(''+c.id+'','+(!ativo)+')" style="background:'+(ativo?'var(--rd2)':'var(--gn2)')+';color:'+(ativo?'var(--rd)':'var(--gn)')+';border:1px solid '+(ativo?'var(--rd3)':'var(--gn3)')+';">'+(ativo?'&#9940; Desativar':'&#9989; Ativar')+'</button>'+
-        '<button class="acao-btn" onclick="renovar30(''+c.id+'')" style="background:var(--am2);color:var(--am);border:1px solid var(--am3);">&#128260; +30d</button>'+
-        '<button class="acao-btn" onclick="copiarCodigo(''+(c.codigo_acesso||'')+'')" style="background:var(--pu2);color:var(--pu);border:1px solid var(--pu3);">&#128203; Codigo</button>'+
-        (ativo&&!pag?'<button class="acao-btn" onclick="abrirPagamento(''+c.id+'',''+plano+'','+planoValor+')" style="background:var(--gn2);color:var(--gn);border:1px solid var(--gn3);">&#128176; Reg. Pagamento</button>':'')+
+        '<button class="acao-btn" onclick="editarCliente(\''+c.id+'\')" style="background:var(--bl2);color:var(--bl);border:1px solid var(--bl3);">&#9999;&#65039; Editar</button>'+
+        '<button class="acao-btn" onclick="toggleAtivo(\''+c.id+'\','+(!ativo)+')" style="background:'+(ativo?'var(--rd2)':'var(--gn2)')+';color:'+(ativo?'var(--rd)':'var(--gn)')+';border:1px solid '+(ativo?'var(--rd3)':'var(--gn3)')+';">'+(ativo?'&#9940; Desativar':'&#9989; Ativar')+'</button>'+
+        '<button class="acao-btn" onclick="renovar30(\''+c.id+'\')" style="background:var(--am2);color:var(--am);border:1px solid var(--am3);">&#128260; +30d</button>'+
+        '<button class="acao-btn" onclick="copiarCodigo(\''+(c.codigo_acesso||'')+'\')" style="background:var(--pu2);color:var(--pu);border:1px solid var(--pu3);">&#128203; Codigo</button>'+
+        (ativo&&!pag?'<button class="acao-btn" onclick="abrirPagamento(\''+c.id+'\',\''+plano+'\','+planoValor+')" style="background:var(--gn2);color:var(--gn);border:1px solid var(--gn3);">&#128176; Reg. Pagamento</button>':'')+
       '</div>'+
     '</div>';
   }).join('');
@@ -628,7 +629,7 @@ function renderFinanceiro(){
       (pagsVend.length?pagsVend.map(p=>{const c=todosClientes.find(x=>x.id===p.clienteId);return '<div class="pag-item"><div><div style="font-size:12px;font-weight:700;">'+(c?c.nome:'Cliente')+'</div><div style="font-size:10px;color:var(--t2);">'+p.data+'</div></div><div style="font-size:14px;font-weight:900;color:var(--gn);">'+fmt(p.valor)+'</div></div>';}).join(''):'<div style="font-size:11px;color:var(--t3);padding:8px;">Nenhum pagamento este mes</div>')+
       (totalAnt>0?'<div style="background:'+(comPagaAnt?'var(--gn2)':'var(--am2)')+';border:1px solid '+(comPagaAnt?'var(--gn3)':'var(--am3)')+';border-radius:10px;padding:10px 12px;margin-top:10px;display:flex;align-items:center;justify-content:space-between;">'+
         '<div><div style="font-size:11px;font-weight:700;color:'+(comPagaAnt?'var(--gn)':'var(--am)')+';">'+(comPagaAnt?'&#9989; Comissao paga':'&#9888;&#65039; Comissao pendente')+'</div><div style="font-size:10px;color:var(--t2);margin-top:2px;">'+fmt(totalAnt)+'</div></div>'+
-        (!comPagaAnt?'<button onclick="abrirComissao(''+v.id+'',''+mesAntStr+'','+totalAnt+')" style="padding:7px 12px;background:var(--am);border:none;border-radius:9px;color:#0B1120;font-size:11px;font-weight:800;cursor:pointer;font-family:Inter,sans-serif;">&#9989; Marcar Paga</button>':
+        (!comPagaAnt?'<button onclick="abrirComissao(\''+v.id+'\',\''+mesAntStr+'\','+totalAnt+')" style="padding:7px 12px;background:var(--am);border:none;border-radius:9px;color:#0B1120;font-size:11px;font-weight:800;cursor:pointer;font-family:Inter,sans-serif;">&#9989; Marcar Paga</button>':
         '<span style="font-size:10px;color:var(--gn);">Pago em '+(comPagaAnt.data||'&mdash;')+'</span>')+
       '</div>':'');+
     '</div>';
@@ -668,7 +669,7 @@ function renderVendedores(){
     return '<div class="vend-card">'+
       '<div class="vend-header">'+
         '<div><div class="vend-nome">'+(v.id==='v0'?'&#128081; ':'')+v.nome+'</div><div style="font-size:11px;color:var(--t2);margin-top:2px;">Comissao: '+v.comissao+'% &middot; '+(v.ativo!==false?'&#9989; Ativo':'&#9940; Inativo')+'</div></div>'+
-        (v.id!=='v0'?'<button onclick="editarVendedor(''+v.id+'')" style="padding:7px 12px;background:var(--bl2);border:1px solid var(--bl3);border-radius:9px;color:var(--bl);font-size:11px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;">&#9999;&#65039; Editar</button>':'')+
+        (v.id!=='v0'?'<button onclick="editarVendedor(\''+v.id+'\')" style="padding:7px 12px;background:var(--bl2);border:1px solid var(--bl3);border-radius:9px;color:var(--bl);font-size:11px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;">&#9999;&#65039; Editar</button>':'')+
       '</div>'+
       '<div class="vend-stats">'+
         '<div class="vend-stat"><div class="vend-stat-n" style="color:var(--bl);">'+todosClientes.filter(c=>(c.vendedor_id||'v0')===v.id).length+'</div><div class="vend-stat-l">Clientes</div></div>'+
@@ -696,7 +697,7 @@ function salvarVendedor(){
 function excluirVendedor(){
   const id=$('mvId').value;if(id==='v0')return toast('Nao e possivel remover este vendedor','warn');
   const el=$('toast');
-  el.innerHTML='&#128465;&#65039; Remover vendedor? <button onclick="confirmarExcluirVend(''+id+'')" style="margin-left:8px;padding:2px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:6px;color:#fff;font-weight:900;cursor:pointer;">&#10003; Sim</button> <button onclick="cancelarToast()" style="margin-left:4px;padding:2px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:6px;color:#fff;cursor:pointer;">&#10007; Nao</button>';
+  el.innerHTML='&#128465;&#65039; Remover vendedor? <button onclick="confirmarExcluirVend(\''+id+'\')" style="margin-left:8px;padding:2px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:6px;color:#fff;font-weight:900;cursor:pointer;">&#10003; Sim</button> <button onclick="cancelarToast()" style="margin-left:4px;padding:2px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:6px;color:#fff;cursor:pointer;">&#10007; Nao</button>';
   el.className='show warn';clearTimeout(el._t);el._t=setTimeout(()=>{el.className='';el.innerHTML='';},6000);fecharModal('ovVendedor');
 }
 function confirmarExcluirVend(id){todosVendedores=todosVendedores.filter(v=>v.id!==id);salvarVendedoresLocal();cancelarToast();toast('Vendedor removido','warn');renderVendedores();}
@@ -778,7 +779,7 @@ async function salvarCliente(){
 function excluirCliente(){
   const id=$('mcId').value;const nome=clienteAtual?clienteAtual.nome:'este cliente';
   const el=$('toast');
-  el.innerHTML='&#128465;&#65039; Excluir <strong>'+nome+'</strong>? <button onclick="confirmarExcluir(''+id+'')" style="margin-left:8px;padding:2px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:6px;color:#fff;font-weight:900;cursor:pointer;">&#10003; Sim</button> <button onclick="cancelarToast()" style="margin-left:4px;padding:2px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:6px;color:#fff;cursor:pointer;">&#10007; Nao</button>';
+  el.innerHTML='&#128465;&#65039; Excluir <strong>'+nome+'</strong>? <button onclick="confirmarExcluir(\''+id+'\')" style="margin-left:8px;padding:2px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:6px;color:#fff;font-weight:900;cursor:pointer;">&#10003; Sim</button> <button onclick="cancelarToast()" style="margin-left:4px;padding:2px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:6px;color:#fff;cursor:pointer;">&#10007; Nao</button>';
   el.className='show err';clearTimeout(el._t);el._t=setTimeout(()=>{el.className='';el.innerHTML='';},6000);fecharModal('ovCliente');
 }
 async function confirmarExcluir(id){
