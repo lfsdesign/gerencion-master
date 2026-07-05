@@ -440,6 +440,23 @@ const sb=(path,opts={})=>fetch(`${SB_URL}/rest/v1/${path}`,{
 const $=id=>document.getElementById(id);
 const fmt=v=>(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const toast=(m,t='ok',d=3500)=>{const el=$('toast');el.innerHTML=m;el.className='show'+(t==='err'?' err':t==='warn'?' warn':'');clearTimeout(el._t);el._t=setTimeout(()=>{el.className='';el.innerHTML='';},d);};
+// Confirmação reutilizável: mostra a pergunta com Sim/Não. Só executa a ação se clicar Sim.
+function confirmarAcao(mensagem,onSim){
+  const el=$('toast');
+  el.innerHTML=mensagem+
+    '<div style="margin-top:10px;display:flex;gap:8px;justify-content:center;">'+
+    '<button id="cfSim" style="padding:6px 16px;background:var(--gn);border:none;border-radius:8px;color:#0B1120;font-weight:900;cursor:pointer;font-family:Inter,sans-serif;">✓ Sim</button>'+
+    '<button id="cfNao" style="padding:6px 16px;background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;">✗ Cancelar</button>'+
+    '</div>';
+  el.className='show';el.style.pointerEvents='all';
+  clearTimeout(el._t);
+  const fechar=()=>{el.className='';el.innerHTML='';el.style.pointerEvents='';};
+  setTimeout(()=>{
+    const s=$('cfSim'),n=$('cfNao');
+    if(s)s.onclick=()=>{fechar();try{onSim();}catch(e){toast('Erro','err');}};
+    if(n)n.onclick=fechar;
+  },50);
+}
 
 let todosClientes=[],todosVendedores=[],todosPagamentos=[];
 let filtroAtual='todos';
@@ -949,35 +966,37 @@ function confirmarExcluirVend(id){
 
 // AÇÕES CLIENTES
 async function toggleAtivo(id,novoStatus){
-  try{await sb('ge_restaurantes?id=eq.'+id,{method:'PATCH',body:JSON.stringify({ativo:novoStatus})});toast(novoStatus?'✅ Ativado!':'⛔ Desativado!',novoStatus?'ok':'warn');await carregarClientes();}catch(e){toast('Erro','err');}
+  const c=todosClientes.find(x=>x.id===id);
+  const nome=c&&c.nome||'este cliente';
+  // Ativar é inofensivo; desativar (trancar o cliente) pede confirmação
+  if(novoStatus===false){
+    confirmarAcao('⛔ Desativar <strong>'+nome+'</strong>?<br>O cliente vai perder o acesso ao app até ser reativado.',async()=>{
+      try{await sb('ge_restaurantes?id=eq.'+id,{method:'PATCH',body:JSON.stringify({ativo:false})});toast('⛔ Desativado!','warn');await carregarClientes();}catch(e){toast('Erro','err');}
+    });
+    return;
+  }
+  try{await sb('ge_restaurantes?id=eq.'+id,{method:'PATCH',body:JSON.stringify({ativo:true})});toast('✅ Ativado!','ok');await carregarClientes();}catch(e){toast('Erro','err');}
 }
 async function renovar30(id){
   const c=todosClientes.find(x=>x.id===id);if(!c)return;
   const base=c.validade_ate&&new Date(c.validade_ate+'T00:00:00')>new Date()?new Date(c.validade_ate+'T00:00:00'):new Date();
   base.setDate(base.getDate()+30);
   const nova=base.toISOString().split('T')[0];
-  try{await sb('ge_restaurantes?id=eq.'+id,{method:'PATCH',body:JSON.stringify({ativo:true,validade_ate:nova})});toast('✅ +30 dias! Válido até '+new Date(nova+'T00:00:00').toLocaleDateString('pt-BR'));await carregarClientes();}catch(e){toast('Erro','err');}
+  const novaFmt=new Date(nova+'T00:00:00').toLocaleDateString('pt-BR');
+  confirmarAcao('🔄 Adicionar 30 dias a <strong>'+(c.nome||'este cliente')+'</strong>?<br>Nova validade: '+novaFmt,async()=>{
+    try{await sb('ge_restaurantes?id=eq.'+id,{method:'PATCH',body:JSON.stringify({ativo:true,validade_ate:nova})});toast('✅ +30 dias! Válido até '+novaFmt);await carregarClientes();}catch(e){toast('Erro','err');}
+  });
 }
 async function tornarVitalicio(id){
   const c=todosClientes.find(x=>x.id===id);if(!c)return;
   const nome=c.nome||'este cliente';
-  const el=$('toast');
-  el.innerHTML='♾️ Tornar <strong>'+nome+'</strong> vitalício? (acesso até 31/12/2099) '+
-    '<button id="vitSim" style="margin-left:8px;padding:2px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:6px;color:#fff;font-weight:900;cursor:pointer;font-family:Inter,sans-serif;">✓ Sim</button> '+
-    '<button onclick="(function(){var t=document.getElementById(\'toast\');t.className=\'\';t.innerHTML=\'\';t.style.pointerEvents=\'\';})()" style="margin-left:4px;padding:2px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:6px;color:#fff;cursor:pointer;font-family:Inter,sans-serif;">✗ Não</button>';
-  el.className='show warn';el.style.pointerEvents='all';
-  clearTimeout(el._t);
-  setTimeout(()=>{
-    const btn=$('vitSim');
-    if(btn)btn.onclick=async()=>{
-      el.className='';el.innerHTML='';el.style.pointerEvents='';
-      try{
-        await sb('ge_restaurantes?id=eq.'+id,{method:'PATCH',body:JSON.stringify({ativo:true,validade_ate:DATA_VITALICIA,observacao:(c.observacao&&c.observacao.includes('Fundador'))?c.observacao:'Cliente Fundador · Vitalício'})});
-        toast('♾️ '+nome+' agora é vitalício! Acesso garantido até 31/12/2099.');
-        await carregarClientes();
-      }catch(e){toast('Erro ao tornar vitalício','err');}
-    };
-  },50);
+  confirmarAcao('♾️ Tornar <strong>'+nome+'</strong> vitalício?<br>Acesso garantido até 31/12/2099.',async()=>{
+    try{
+      await sb('ge_restaurantes?id=eq.'+id,{method:'PATCH',body:JSON.stringify({ativo:true,validade_ate:DATA_VITALICIA,observacao:(c.observacao&&c.observacao.includes('Fundador'))?c.observacao:'Cliente Fundador · Vitalício'})});
+      toast('♾️ '+nome+' agora é vitalício! Acesso até 31/12/2099.');
+      await carregarClientes();
+    }catch(e){toast('Erro ao tornar vitalício','err');}
+  });
 }
 
 let clienteAtual=null;
