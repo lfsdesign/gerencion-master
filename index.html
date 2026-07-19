@@ -670,7 +670,7 @@ function abrirPagamento(clienteId,plano,valor){
   const liquido=valor-comissao;
   $('pagClienteId').value=clienteId;
   $('pagValor').value=valor;
-  const hoje=new Date().toISOString().split('T')[0];
+  const hd=new Date();const hoje=hd.getFullYear()+'-'+String(hd.getMonth()+1).padStart(2,'0')+'-'+String(hd.getDate()).padStart(2,'0');
   $('pagData').value=hoje;
   $('pagObs').value='';
   $('pagInfo').innerHTML=
@@ -692,7 +692,7 @@ function planoPeloValor(valor){
 }
 const NOME_PLANO={basico:'📦 Básico',profissional:'⭐ Profissional',empresarial:'🏆 Empresarial'};
 // Máximo de funcionários por plano (Empresarial = ilimitado = 999)
-const MAX_FUNC_PLANO={basico:2,profissional:8,empresarial:999};
+const MAX_FUNC_PLANO={basico:3,profissional:7,empresarial:999};
 function maxFuncDoPlano(plano){return MAX_FUNC_PLANO[plano]||2;}
 // Exibe o máximo de forma amigável (999 vira ilimitado)
 function labelMaxFunc(n){return (n>=999)?'♾️ Ilimitado':n;}
@@ -863,7 +863,7 @@ function abrirComissao(vendId,mes,valor){
   $('mcmVendId').value=vendId;
   $('mcmMes').value=mes;
   $('mcmValor').value=valor.toFixed(2);
-  $('mcmData').value=new Date().toISOString().split('T')[0];
+  const _hd=new Date();$('mcmData').value=_hd.getFullYear()+'-'+String(_hd.getMonth()+1).padStart(2,'0')+'-'+String(_hd.getDate()).padStart(2,'0');
   $('mcmObs').value='';
   $('mcmTit').textContent='Pagar comissão — '+(v?v.nome:'');
   $('mcmInfo').innerHTML='<strong>'+( v?v.nome:'')+' · '+mes+'</strong><br>Valor a pagar: <strong style="color:var(--am);font-size:16px;">'+fmt(valor)+'</strong><br><span style="font-size:11px;color:var(--t2);">Abra seu banco, faça o Pix e depois confirme aqui.</span>';
