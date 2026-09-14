@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="GE Master">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -131,7 +132,8 @@ select.inp{appearance:auto;}
   <div class="sub">Gerencion Estoque · Acesso restrito</div>
   <div class="card">
     <h2>🔐 Acesso Master</h2>
-    <input class="inp" type="password" id="masterPin" placeholder="Senha master" maxlength="20">
+    <input class="inp" type="email" id="masterEmail" placeholder="E-mail">
+    <input class="inp" type="password" id="masterSenha" placeholder="Senha" maxlength="60">
     <button class="btn" onclick="loginMaster()">Entrar</button>
   </div>
 </div>
@@ -430,7 +432,7 @@ select.inp{appearance:auto;}
 <script>
 const SB_URL='https://vzsvdtlmxxbsqhpitfin.supabase.co';
 const SB_KEY='sb_publishable_rhwR4_UkK33FF3XX1c-oeA_lMKMCANN';
-const MASTER_PIN='Lfs#111012Lfs#';
+const supabaseClient=window.supabase.createClient(SB_URL,SB_KEY);
 
 const sb=(path,opts={})=>fetch(`${SB_URL}/rest/v1/${path}`,{
   headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})},
@@ -536,7 +538,11 @@ function maskWpp(el){let v=el.value.replace(/\D/g,'');if(v.length>11)v=v.slice(0
 
 // LOGIN
 async function loginMaster(){
-  if($('masterPin').value!==MASTER_PIN)return toast('Senha incorreta','err');
+  const email=$('masterEmail').value.trim();
+  const senha=$('masterSenha').value;
+  if(!email||!senha)return toast('Preencha e-mail e senha','warn');
+  const {data,error}=await supabaseClient.auth.signInWithPassword({email,password:senha});
+  if(error)return toast('Login inválido','err');
   $('telaLogin').style.display='none';
   $('telaApp').style.display='block';
   todosVendedores=carregarVendedoresLocal();
@@ -544,7 +550,7 @@ async function loginMaster(){
   await carregarPagamentosDB();
   carregarClientes();
 }
-function sairMaster(){$('telaApp').style.display='none';$('telaLogin').style.display='flex';$('masterPin').value='';}
+async function sairMaster(){await supabaseClient.auth.signOut();$('telaApp').style.display='none';$('telaLogin').style.display='flex';$('masterEmail').value='';$('masterSenha').value='';}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&$('telaLogin').style.display!=='none')loginMaster();});
 
 // ABAS
